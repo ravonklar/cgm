@@ -8,10 +8,10 @@ import trident
 from unyt import unyt_array
 
 def galLoad(haloid):
-		filename = f'./TNG100-1/cutouts/84/halo_{haloid}.hdf5'
-		ds = yt.load(filename)
-		r_vir, primary_pos=ds.hsvals['Group_R_Crit200'].value, ds.hsvals['GroupPos'].value
-		return ds, r_vir, primary_pos
+	filename = f'./TNG100-1/cutouts/84/halo_{haloid}.hdf5'
+	ds = yt.load(filename)
+	r_vir, primary_pos=ds.hsvals['Group_R_Crit200'].value, ds.hsvals['GroupPos'].value
+	return ds, r_vir, primary_pos
 
 def angleGenerator(points):
 	#Generate fairly uniformly distributed points across a sphere.
