@@ -72,5 +72,3 @@ def rayCalc(sep_unit_vector, r_vir):
 	startRay = ip*np.array(sep_unit_vector)-4.1*r_vir*np.array(secondVec)
 	endRay = ip*np.array(sep_unit_vector)+4.1*r_vir*np.array(secondVec)
 	return startRay, endRay
-
-
