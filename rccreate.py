@@ -14,22 +14,6 @@ import raycontrollib as rclib
 import sys
 
 
-def get(path, params=None):
-  r=requests.get(path, params=params, headers=headers)
-  r.raise_for_status()
-
-  if r.headers['content-type']=='application/json':
-    return r.json()
-		
-  if 'content-disposition' in r.headers:
-    filename=r.headers['content-disposition'].split('filename=')[1]
-    with open(filename, 'wb') as f:
-      f.write(r.content)
-    return filename
-  return r
-
-
-
 #more "physical" variables
 omega_L=0.6911
 omega_m=0.3089
@@ -55,19 +39,19 @@ startRay, endRay = rclib.rayCalc(sep_u_v, r_vir)
 start=unyt_array(startRay, 'code_length', registry=ds.unit_registry)
 end=unyt_array(endRay, 'code_length', registry=ds.unit_registry)
 ray_filename=f'gal{haloid}_{rayid}'
-  #POSSIBLY IMPORTANT: It looks like passing our start and end points into trident.make_simple_ray actually *changes* what our start and end points are defined as. For this reason, I re-define them here.
+	#POSSIBLY IMPORTANT: It looks like passing our start and end points into trident.make_simple_ray actually *changes* what our start and end points are defined as. For this reason, I re-define them here.
 start=unyt_array(startRay, 'code_length', registry=ds.unit_registry)
 end=unyt_array(endRay, 'code_length', registry=ds.unit_registry)
 
 tng.ray_func(ds, start_position=start, end_position=end, sn_ratio=18, data_filename=ray_filename+'.h5', complete_filename=f'{ray_filename}.hdf5', spectral_filename=ray_filename+'_spectra')
-      
+		
 #loaded_ray_h5=h5py.File('test_file_complete.hdf5', 'r+')
 #loaded_ray=yt.load('test_file_complete.hdf5')
 
 #impact_param=loaded_ray._ray('impact_param')
 #g130mflux=loaded_ray._ray('flux', 'COS-G130M')
-       
-        
+		 
+		
 
 
 
@@ -75,7 +59,7 @@ tng.ray_func(ds, start_position=start, end_position=end, sn_ratio=18, data_filen
 
 
 
-    
+	
 
 
 
