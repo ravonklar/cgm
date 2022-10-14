@@ -50,27 +50,3 @@ tng.ray_func(ds, start_position=start, end_position=end, sn_ratio=18, data_filen
 
 #impact_param=loaded_ray._ray('impact_param')
 #g130mflux=loaded_ray._ray('flux', 'COS-G130M')
-		 
-		
-
-
-
-
-
-
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
