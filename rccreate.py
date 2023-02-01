@@ -38,7 +38,7 @@ startRay, endRay = rclib.rayCalc(sep_u_v, r_vir)
 
 start=unyt_array(startRay, 'code_length', registry=ds.unit_registry)
 end=unyt_array(endRay, 'code_length', registry=ds.unit_registry)
-ray_filename=f'gal{haloid}_{rayid}'
+ray_filename=f'./TNG100-1/Rays/gal{haloid}_{rayid}'
 	#POSSIBLY IMPORTANT: It looks like passing our start and end points into trident.make_simple_ray actually *changes* what our start and end points are defined as. For this reason, I re-define them here.
 start=unyt_array(startRay, 'code_length', registry=ds.unit_registry)
 end=unyt_array(endRay, 'code_length', registry=ds.unit_registry)

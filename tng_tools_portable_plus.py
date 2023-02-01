@@ -88,7 +88,7 @@ def ray_func(ds, start_position, end_position, instruments=instruments, sn_ratio
 			 solution_filename=None, data_filename=None, spectral_filename=None, complete_filename=None,
 			 trajectory=None, redshift=None, field_parameters=None,
 			 setup_function=None, load_kwargs=None,
-			 line_database='MortCash0.txt', ionization_table=None, interactive=False):
+			 line_database='MortCashTri.txt', ionization_table=None, interactive=False):
 		   
 	origin=unyt_array(75000/2, units='code_length', registry=ds.unit_registry)
 	#data_filename is for the ray.h5 object; spectral filename is for the images/data files; complete_filename is for the final hdf5 file we make here	 
