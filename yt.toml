@@ -1,0 +1,4 @@
+[yt]
+suppress_stream_logging = true
+stdout_stream_logging = true
+plugin_filename="my_plugins.py"

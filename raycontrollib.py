@@ -7,8 +7,10 @@ import tng_tools_portable_plus as tng
 import trident
 from unyt import unyt_array
 
+halofilepath = '/home/ravonklar/setup/TNG100-1/cutouts/'
+
 def galLoad(haloid):
-	filename = f'./TNG100-1/cutouts/84/halo_{haloid}.hdf5'
+	filename = f'{halofilepath}cutout_{haloid}.hdf5'
 	ds = yt.load(filename)
 	r_vir, primary_pos=ds.hsvals['Group_R_Crit200'].value, ds.hsvals['GroupPos'].value
 	return ds, r_vir, primary_pos

@@ -6,67 +6,93 @@ path = pathlib.Path().resolve()
 
 print(path)
 
+rayfilepath = '/scratch/ravonklar/'
+
 import raycontrollib as rclib
 
 import sys
 import pickle
 import os
 
+import h5py 
+import requests
+import astropy
+import numpy as np
+import tng_tools_portable_plus as tng
+import yt
+import trident
+yt.enable_plugins()
+from unyt import unyt_array
+
+
+#import shutil
+
+haloid = int(sys.argv[1])
+
+startInd = int(sys.argv[2])
+
+increment = int(sys.argv[3])
+
 points = 127
-
 uvPoints = rclib.angleGenerator(points)
-
 uvList = rclib.unitVectors(uvPoints)
+
+totraynum = len(uvList)
+if startInd+increment > totraynum:
+	increment = totraynum-startInd
+uvPoints = uvPoints[startInd:startInd+increment]
+uvList = uvList[startInd:startInd+increment]
 
 totraynum = len(uvList)
 
 remain = totraynum
-procNum = 5
+procNum = 1
+
+'''tempFiles = []
+for num in range(procNum):
+	shutil.copyfile(f'C:/Users/ryker/Desktop/CGM/suffer/halo_{haloid}.hdf5', f'C:/Users/ryker/Desktop/CGM/suffer/halo_{haloid}_{num}.hdf5')
+	tempFiles.append(f'C:/Users/ryker/Desktop/CGM/suffer/halo_{haloid}_{num}.hdf5')'''
 
 activeProc = []
 #haloids = pickle.load(open('done_halos84', 'rb'))
 #print(haloids)
 
-halofiles = os.listdir('./TNG100-1/cutouts/84/')
-haloids = []
-for filepath in halofiles:
-	filepath = filepath.replace('halo_', '')
-	filepath = filepath.replace('.hdf5', '')
-	haloids.append(filepath)
-
 timeList = []
 
-for haloid in haloids:
-	print(f'BEGAN HALO {haloid}')
-	boolean = True
-	remain = totraynum
-	i = 0
-	while boolean:
-		targetProc = min(remain, procNum)
-		while len(activeProc) != targetProc:
-			seed = time.perf_counter()
-			result = subprocess.Popen(f'cd {path} && python rccreate.py {seed} {int(haloid)} {uvList[i][0]} {uvList[i][1]} {uvList[i][2]} {i}', shell=True, universal_newlines=True, stdout=subprocess.DEVNULL)
-			activeProc.append(result)
-			print(f'STARTED RAY WITH DATA {seed} {int(haloid)} {uvList[i][0]} {uvList[i][1]} {uvList[i][2]} {i}')
-			i += 1
-			targetProc = min(remain, procNum)
+print(f'BEGAN HALO {haloid} INDEX {startInd}')
 
-			timeList.append(seed)
+#more "physical" variables
+omega_L=0.6911
+omega_m=0.3089
+omega_b=0.0486
+h=0.6774
+kpctokm=3.086e16
+kpctocm=kpctokm*1e5
+#uni_age=cosmo.age(0)
 
-		for proc in activeProc:
-			#print(f'READING OUTPUT FROM {activeProc.index(proc)}')
-			#print(proc.communicate())
-			test = proc.poll()
-			if test != None:
-				indP = activeProc.index(proc)
-				endTime = time.perf_counter()
-				print(f'RAY COMPLETED IN {endTime-timeList[indP]}')
-				timeList.pop(indP)
-				activeProc.remove(proc)
-				remain-=1
-		if remain == 0:
-			boolean = False
-			print('Mission success')
-	print(f'FINISHED HALO {haloid}')
-	#SINGLE USE, REMEMBER TO DISABLE
-	break
+ds, r_vir, primary_pos = rclib.galLoad(haloid)
+
+for i in range(totraynum):
+
+	sep_u_v = [uvList[i][0], uvList[i][1], uvList[i][2]]
+	rayid = i+startInd
+
+	seed = time.perf_counter()
+	np.random.seed(int(seed))
+	startRay, endRay = rclib.rayCalc(sep_u_v, r_vir)
+
+	start=unyt_array(startRay, 'code_length', registry=ds.unit_registry)
+	end=unyt_array(endRay, 'code_length', registry=ds.unit_registry)
+	ray_filename=f'gal{haloid}_{rayid}'
+		#POSSIBLY IMPORTANT: It looks like passing our start and end points into trident.make_simple_ray actually *changes* what our start and end points are defined as. For this reason, I re-define them here.
+	start=unyt_array(startRay, 'code_length', registry=ds.unit_registry)
+	end=unyt_array(endRay, 'code_length', registry=ds.unit_registry)
+
+	tng.ray_func(ds, start_position=start, end_position=end, sn_ratio=18, complete_filename=f'{rayfilepath}{ray_filename}.hdf5')
+	print(f'RAY COMPLETED IN {time.perf_counter()-seed}')
+
+print(f'FINISHED HALO {haloid} END {startInd+increment-1}')
+
+
+'''for file in tempFiles:
+	os.remove(file)'''

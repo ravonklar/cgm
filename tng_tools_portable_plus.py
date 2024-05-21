@@ -53,6 +53,7 @@ from os.path import isfile
 from astropy import constants as c, units as u
 from astropy.cosmology import Planck15 as cosmo, z_at_value
 
+import sys
 
 #slis 230M, COS: G185M, G225M, G285M, G230L
 #can see various version of redshift: redshift=cosmo, redshift_dopp=peculiar, redshift_eff=total
@@ -107,7 +108,7 @@ def ray_func(ds, start_position, end_position, instruments=instruments, sn_ratio
 	ip=unyt_array(np.linalg.norm(x), units='code_length', registry=ds.unit_registry)   #this is ip in code length units, but comes out of norm() unitless
 	uv_to_ip=x.value/ip.value
 	
-	print('print statement 1')
+	#print('print statement 1')
 	#Now we make the actual ray
 	ray=trident.make_simple_ray(ds, start_position=start_position+origin, end_position=end_position+origin, data_filename=data_filename, lines=lines, ftype='PartType0', line_database=line_database, fields=[('PartType0', 'ParticleIDs')])
 	dl=copy.deepcopy(ray.r['gas', 'dl'])
@@ -119,15 +120,17 @@ def ray_func(ds, start_position, end_position, instruments=instruments, sn_ratio
   
 	#Everything has been calculated; now we just need to organize/store data in hdf5 file	
 	#First we copy/store metadata in a new file
-	with h5py.File(complete_filename, 'w') as f:
-		for grp in groups:
-			f.create_group(grp)
-		f['Config'].attrs['VORONOI'], f['Config'].attrs['RAY']=1, 1  
+	f = h5py.File(complete_filename, 'w')
+	for grp in groups:
+		f.create_group(grp)
+	f['Config'].attrs['VORONOI'], f['Config'].attrs['RAY']=1, 1  
 	
 	#trying to move away from using attrs, but this set-up is essential to reloading the data files, as yt assumes this arrangement. Same with header below
 	for key, value in ds.headvals.items():
 		if key=='NumPart_ThisFile':
-			f['Header'].attrs[key]=np.int32([len(ray.r['gas', 'ParticleIDs']), 0., 0., 0., 0., ds.bh('count')])
+			#print(ds.bh('count').value[0], file=sys.stderr)
+			#print(np.int32([len(ray.r['gas', 'ParticleIDs']), 0., 0., 0., 0., ds.bh('count').value[0]]))
+			f['Header'].attrs[key]=np.int32([len(ray.r['gas', 'ParticleIDs']), 0., 0., 0., 0., ds.bh('count').value[0]])
 		else:
 			f['Header'].attrs[key]=value
 	for key, value in ds.hsvals.items():
@@ -176,20 +179,21 @@ def ray_func(ds, start_position, end_position, instruments=instruments, sn_ratio
 			if 'count' in field:
 				f['PartType0'].create_dataset(field[1], data=len(ray_index))
 			else:
-				print(field)
+				#print(field)
 				f['PartType0'].create_dataset(field[1], data=ds.gas(field[1])[ds_index])
 	#We take properties from the dataset first; some auto-generated properties in the ray may have the same name as properties I made up in the dataset. My own properties are better, so we take them. If we find the same property in the ray we just skip it
 	for field in ray.derived_field_list:
 		if field==('gas', 'dl'):
 			f['PartType0'].create_dataset(field[1], data=dl[ray_index])
-			print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+			#print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 		elif 'gas' in field and (field[1]=='l' or 'number_density' in field[1] or 'ion_fraction'in field[1] or 'nuclei_density' in field[1]):
 			try:
 				f['PartType0'].create_dataset(field[1], data=ray.r[field][ray_index])
 			except OSError:   #this error is thrown if we try to create a dataset with a name that is already used. Should only happen if we grab a property from ray that already existed for all particles in ds
 				print(field, 'OSError exception')
 			except:
-				print(field, 'This should only happen with hydrogen nuclei density and neutral hydrogen density')
+				if field[1] != 'H_nuclei_density' and field[1] != 'H_p0_number_density':
+					print(field, 'This should only happen with hydrogen nuclei density and neutral hydrogen density')
 		  
   
   #Finally done storing/organizing data; now just save hdf5 file. Note that we are saving several properties from ds that are normally calculated from TNG properties on disk when loaded with yt; for ray files, these properties will already be calculated and saved to disk. When you use yt.load() on them the properties are needlessly recalculated, but nothing bad happens

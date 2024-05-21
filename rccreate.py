@@ -38,12 +38,15 @@ startRay, endRay = rclib.rayCalc(sep_u_v, r_vir)
 
 start=unyt_array(startRay, 'code_length', registry=ds.unit_registry)
 end=unyt_array(endRay, 'code_length', registry=ds.unit_registry)
-ray_filename=f'./TNG100-1/Rays/gal{haloid}_{rayid}'
+ray_filename=f'gal{haloid}_{rayid}'
 	#POSSIBLY IMPORTANT: It looks like passing our start and end points into trident.make_simple_ray actually *changes* what our start and end points are defined as. For this reason, I re-define them here.
 start=unyt_array(startRay, 'code_length', registry=ds.unit_registry)
 end=unyt_array(endRay, 'code_length', registry=ds.unit_registry)
 
-tng.ray_func(ds, start_position=start, end_position=end, sn_ratio=18, data_filename=ray_filename+'.h5', complete_filename=f'{ray_filename}.hdf5', spectral_filename=ray_filename+'_spectra')
+tng.ray_func(ds, start_position=start, end_position=end, sn_ratio=18, complete_filename=f'/scratch/ravonklar/{ray_filename}.hdf5')
+
+
+
 		
 #loaded_ray_h5=h5py.File('test_file_complete.hdf5', 'r+')
 #loaded_ray=yt.load('test_file_complete.hdf5')
